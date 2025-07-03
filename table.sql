@@ -40,7 +40,23 @@ CREATE TABLE health_records (
     smell_disorder BOOLEAN NOT NULL DEFAULT 0
 );
 -- 行動記録テーブル作成
-
+CREATE TABLE action_record (
+    action_recordID INT AUTO_INCREMENT PRIMARY KEY, 
+    personal_number VARCHAR(20),                    
+    date DATETIME,                                  
+    start_time DATETIME NOT NULL,                   
+    end_time DATETIME NOT NULL,                     
+    place VARCHAR(30),                              
+    move_method VARCHAR(50),                        
+    departure VARCHAR(100),                        
+    destination VARCHAR(100),                       
+    with_companion BOOLEAN DEFAULT FALSE,           
+    companion_note TEXT,                            
+    remarks TEXT,                                    
+    lastupdate DATETIME,                            
+    delflag BOOLEAN DEFAULT FALSE,                  
+    FOREIGN KEY (personal_number) REFERENCES personal_info(personal_number)
+);
 -- コロナテーブル作成
 
 --DROP TABLE if EXISTS Covid;
