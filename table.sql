@@ -55,14 +55,14 @@ CREATE TABLE action_record (
     remarks TEXT,                                    
     lastupdate DATETIME,                            
     delflag BOOLEAN DEFAULT FALSE,                  
-    FOREIGN KEY (personal_number) REFERENCES personal_info(personal_number)
+    FOREIGN KEY (personal_number) REFERENCES user(personal_number) 
 );
 -- コロナテーブル作成
 
 --DROP TABLE if EXISTS Covid;
 CREATE TABLE Covid (
     covid_ID INT NOT NULL AUTO_INCREMENT,
-    personal_number INT NOT NULL, 
+    personal_number varchar(20) NOT NULL, 
     condition INT NOT NULL,
     start_date DATETIME NOT NULL,
     end_date DATETIME NOT NULL,
