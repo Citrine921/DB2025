@@ -22,11 +22,11 @@ create table user(
     primary key(userID)
 );
 -- 体調記録テーブル作成
-CREATE TABLE DB2025.health_records (
+CREATE TABLE health_records (
     health_record_ID INT AUTO_INCREMENT PRIMARY KEY,
-    personal_number TEXT NOT NULL,
-    date DATE NOT NULL,
-    datetime BOOLEAN NOT NULL,
+    personal_number varchar(20) NOT NULL,
+    health_date DATE NOT NULL,
+    health_datetime BOOLEAN NOT NULL,
     temperature FLOAT NOT NULL,
     joint_muscle_pain BOOLEAN NOT NULL DEFAULT 0,
     fatigue BOOLEAN NOT NULL DEFAULT 0,
