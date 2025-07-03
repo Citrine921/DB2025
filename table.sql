@@ -1,7 +1,7 @@
 -- ＜テーブル作成用sql＞
 
 -- データベースの作成と選択
-create database if not exists DB2025; --名前は仮置きです
+create database if not exists DB2025;
 use DB2025;
 
 -- テーブルが既に存在しているなら削除する
@@ -17,7 +17,7 @@ create table user(
     tell varchar(20),
     mail varchar(20),
     addr varchar(50),
-    lastupdate date default now(),
+    lastupdate datetime default NOW(),
     deleteflag boolean default False,
     primary key(userID)
 );
