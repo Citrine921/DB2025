@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>行動記録入力</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f7f6;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+            margin: 20px 0;
+        }
+
+        .container {
+            background-color: #ffffff;
+            padding: 30px 40px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 600px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: bold;
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: calc(100% - 20px);
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 1em;
+            box-sizing: border-box;
+        }
+
+        button[type="submit"] {
+            width: 100%;
+            padding: 15px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 1.1em;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+
+        button[type="submit"]:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>行動記録入力フォーム</h1>
+    <form action="{{ url_for('action_input') }}" method="post">
+        <div class="form-group">
+            <label for="date">日付:</label>
+            <input type="date" id="date" name="date" required>
+        </div>
+
+        <div class="form-group">
+            <label for="startTime">行動開始時刻:</label>
+            <input type="time" id="startTime" name="startTime" required>
+        </div>
+
+        <div class="form-group">
+            <label for="endTime">行動終了時刻:</label>
+            <input type="time" id="endTime" name="endTime" required>
+        </div>
+
+        <div class="form-group">
+            <label for="location">場所:</label>
+            <input type="text" id="location" name="location" placeholder="例: オフィス、自宅" required>
+        </div>
+
+        <div class="form-group">
+            <label for="transportation">移動方法:</label>
+            <input type="text" id="transportation" name="transportation" placeholder="例: 徒歩、自転車など">
+        </div>
+
+        <div class="form-group">
+            <label for="departure">出発地:</label>
+            <input type="text" id="departure" name="departure" placeholder="例: 自宅最寄り駅">
+        </div>
+
+        <div class="form-group">
+            <label for="arrival">到着地:</label>
+            <input type="text" id="arrival" name="arrival" placeholder="例: 会社最寄り駅">
+        </div>
+
+        <div class="form-group">
+            <label>同行者の有無:</label>
+            <input type="radio" id="companionYes" name="companionPresence" value="あり">
+            <label for="companionYes">あり</label>
+            <input type="radio" id="companionNo" name="companionPresence" value="なし" checked>
+            <label for="companionNo">なし</label>
+        </div>
+
+        <div class="form-group">
+            <label for="companionDetails">同行者の補足:</label>
+            <textarea id="companionDetails" name="companionDetails" rows="3"></textarea>
+        </div>
+
+        <div class="form-group">
+            <label for="notes">特記事項:</label>
+            <textarea id="notes" name="notes" rows="4"></textarea>
+        </div>
+
+        <button type="submit">記録を保存</button>
+    </form>
+</div>
+</body>
+</html>

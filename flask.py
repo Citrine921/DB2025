@@ -147,6 +147,136 @@ def report():  # ← 関数名をエンドポイントと一致
 def complete():
     return render_template("covid_complete.html")
 
+
+#############
+#行動記録入力
+#############
+# 行動記録入力ページ（ルートを /action_input に変更）
+@app.route('/action_input', methods=['GET', 'POST'])
+def action_input():
+    if request.method == 'POST':
+        data = request.form
+
+        # 固定の個人番号（本来はログイン情報から取得）
+        personal_number = '12345678'
+
+        # フォームからの入力値取得
+        date_str = data['date']
+        start_time = data['startTime']
+        end_time = data['endTime']
+        place = data['location']
+        move_method = data['transportation']
+        departure = data['departure']
+        destination = data['arrival']
+        with_companion = data['companionPresence'] == 'あり'
+        companion_note = data['companionDetails']
+        remarks = data['notes']
+
+        # 日付・時刻の結合と現在時刻取得
+        date = datetime.strptime(date_str, '%Y-%m-%d')
+        start_datetime = datetime.strptime(f"{date_str} {start_time}", '%Y-%m-%d %H:%M')
+        end_datetime = datetime.strptime(f"{date_str} {end_time}", '%Y-%m-%d %H:%M')
+        now = datetime.now()
+
+        try:
+            conn = get_db_connection()
+            cursor = conn.cursor()
+
+            # 行動記録テーブルにINSERT
+            sql = """
+                INSERT INTO action_record (
+                    personal_number, date, start_time, end_time, place, move_method,
+                    departure, destination, with_companion, companion_note,
+                    remarks, lastupdate, delflag
+                ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, FALSE)
+            """
+            values = (
+                personal_number, date, start_datetime, end_datetime, place,
+                move_method, departure, destination, with_companion,
+                companion_note, remarks, now
+            )
+            cursor.execute(sql, values)
+
+            # userテーブルのlastupdateを更新
+            update_sql = "UPDATE user SET lastupdate = %s WHERE personal_number = %s"
+            cursor.execute(update_sql, (now, personal_number))
+
+            conn.commit()
+            cursor.close()
+            conn.close()
+
+            return redirect(url_for('action_done'))
+
+        except Exception as e:
+            return f"エラーが発生しました: {e}"
+
+    return render_template('action_input.html')
+
+# 完了ページ
+@app.route('/action_done')
+def action_done():
+    return render_template('action_done.html')
+
+
+#############
+#体調観察入力
+#############
+@app.route('/condition_input', methods=['GET', 'POST'])
+def condition_input():
+    if request.method == 'POST':
+        # フォームデータ取得
+        personal_number = request.form['studentId']
+        health_date = request.form['date']
+        health_datetime = 1 if request.form['timeOfDay'] == 'pm' else 0
+        temperature = float(request.form['temperature'])
+
+        # 症状（チェック有無をBooleanとして取得）
+        symptoms = {
+            'joint_muscle_pain': 'symptom_jointMusclePain' in request.form,
+            'fatigue': 'symptom_fatigue' in request.form,
+            'headache': 'symptom_headache' in request.form,
+            'sore_throat': 'symptom_soreThroat' in request.form,
+            'shortness_of_breath': 'symptom_shortnessOfBreath' in request.form,
+            'cough_sneeze': 'symptom_coughSneeze' in request.form,
+            'nausea_vomiting': 'symptom_nauseaVomiting' in request.form,
+            'abdominal_pain_diarrhea': 'symptom_abdominalDiarrhea' in request.form,
+            'taste_disorder': 'symptom_tasteDisorder' in request.form,
+            'smell_disorder': 'symptom_smellDisorder' in request.form,
+        }
+
+        # DBに挿入
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        insert_sql = """
+            INSERT INTO health_records (
+                personal_number, health_date, health_datetime, temperature,
+                joint_muscle_pain, fatigue, headache, sore_throat,
+                shortness_of_breath, cough_sneeze, nausea_vomiting,
+                abdominal_pain_diarrhea, taste_disorder, smell_disorder
+            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+        """
+        values = (
+            personal_number, health_date, health_datetime, temperature,
+            symptoms['joint_muscle_pain'], symptoms['fatigue'], symptoms['headache'],
+            symptoms['sore_throat'], symptoms['shortness_of_breath'], symptoms['cough_sneeze'],
+            symptoms['nausea_vomiting'], symptoms['abdominal_pain_diarrhea'],
+            symptoms['taste_disorder'], symptoms['smell_disorder']
+        )
+        cursor.execute(insert_sql, values)
+        conn.commit()
+        cursor.close()
+        conn.close()
+
+        return redirect(url_for('condition_done'))
+
+    return render_template('condition_input.html')
+
+@app.route('/condition_done')
+def condition_done():
+    return render_template('condition_done.html')
+
+
+
 #プログラム起動
 app.run(host="localhost",port=5000,debug=True)
 
