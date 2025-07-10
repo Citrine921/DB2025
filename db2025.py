@@ -33,9 +33,6 @@ def login1():
 
         dbcon,cur = my_open(**dsn)
 
-        #データベースの選択
-        my_query("use DB2025;",cur)
-
         #sql文
         sqlstring = f"""
             select personal_number, l_name, f_name
@@ -73,9 +70,6 @@ def login():
     
     dbcon,cur = my_open(**dsn)
 
-    #データベースの選択
-    my_query("use DB2025;",cur)
-
     #sql文
     sqlstring = f"""
         select personal_number, l_name, f_name, pass_hash
@@ -101,9 +95,10 @@ def login():
                  
         
     #認証失敗    
-    flash ('個人番号が間違っています。','error') # エラーメッセージ
+    flash ('個人番号が間違っています。','error')
     return render_template('login.html')
 
+# 新規登録用のページにとばす用
 @app.route("/sign_up_page")
 def sign_up_page():
     return render_template('sign_up.html')
@@ -122,24 +117,26 @@ def sign_up():
     pass_hash = generate_password_hash(request.form['pass'])
 
     dbcon,cur = my_open(**dsn)
-    print("debug1")
-    print(cur)
-    #データベースの選択
-    my_query("use DB2025;",cur)
 
-    # #sql文
-    # sqlstring = f"""
-    #     select *
-    #     from user
-    #     where personal_number = '{personal_number}'
-    #     ;
-    # """
-    # print(sqlstring)
-    # my_query(sqlstring,cur)
-    # print("debug")
-    # print(cur) #for debug
-    # if(cur == None):
+    #入力された個人番号がすでに登録されているかどうか判定する
+    #sql文
+    sqlstring = f"""
+        select personal_number
+        from user
+        where personal_number = '{personal_number}'
+        ;
+    """
+    print(sqlstring) #for debug
+    my_query(sqlstring,cur)
+    recset = cur.fetchall()
+    print("debug")
+    print(recset) #for debug
 
+    if recset:
+        flash('個人番号がすでに登録されています','error')
+        return render_template('sign_up.html')
+
+    #個人番号が登録されていなかった場合insertを行う
     #sql文
     sqlstring = f"""
         insert into user(personal_number,l_name,f_name,affiliation,tell,mail,addr,pass_hash)
@@ -153,10 +150,6 @@ def sign_up():
     my_close(dbcon,cur)
     flash('登録が完了しました','info')
     return render_template('sign_up.html')
-
-    # else:
-    #     flash('個人番号がすでに登録されています。','error')
-    #     return render_template('sign_up.html')
     
 #ログアウト
 @app.route("/logout")
