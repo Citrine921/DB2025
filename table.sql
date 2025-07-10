@@ -38,6 +38,10 @@ CREATE TABLE health_records (
     abdominal_pain_diarrhea BOOLEAN NOT NULL DEFAULT 0,
     taste_disorder BOOLEAN NOT NULL DEFAULT 0,
     smell_disorder BOOLEAN NOT NULL DEFAULT 0
+    FOREIGN KEY (personal_number)
+        REFERENCES user(personal_number)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE,
 );
 -- 行動記録テーブル作成
 CREATE TABLE action_record (
