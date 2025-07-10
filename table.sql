@@ -17,6 +17,7 @@ create table user(
     tell varchar(20),
     mail varchar(20),
     addr varchar(50),
+    pass_hash varchar(100),
     lastupdate datetime default NOW(),
     deleteflag boolean default False,
     primary key(userID)

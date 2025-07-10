@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>新規登録</title>
+    <style>
+        .error { color: red; }
+        .info { color: blue; }
+    </style>
+</head>
+<body>
+    <h1>新規登録</h1>
+     <!-- flashのメッセージを表示する用 -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <ul class="flashes">
+        {% for category, message in messages %}
+          <li class="{{ category }}">{{ message }}</li>
+        {% endfor %}
+        </ul>
+      {% endif %}
+    {% endwith %}
+
+    <form action="/sign_up" method="post">
+        個人番号<br>
+        <input type="text" name="P_num" required><br><br>
+        名字<br>
+        <input type="text" name="l_name" required><br><br>
+        名前<br>
+        <input type="text" name="f_name" required><br><br>
+        所属<br>
+        <input type="text" name="affiliation"><br><br>
+        電話番号<br>
+        <input type="text" name="tell"><br><br>
+        メールアドレス<br>
+        <input type="text" name="mail"><br><br>
+        住所<br>
+        <input type="text" name="addr"><br><br>
+        パスワード<br>
+        <input type="text" name="pass" required><br>
+
+        <input type="submit" value="登録"><br>
+    </form>
+    <p><a href="/top">トップページに戻る</a></p>
+</body>
+</html>
