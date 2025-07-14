@@ -212,7 +212,7 @@ def today_report():
     
     my_close(dbcon,cur)
     
-    return render_template( "todayReport.html",
+    return render_template( "adomin_today_report.html",
         table_data = recset
     )
 
