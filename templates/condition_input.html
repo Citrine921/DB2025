@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>体調観察表入力</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f7f6;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start; /* フォームが上部に表示されるように調整 */
+            min-height: 100vh;
+            margin: 20px 0; /* 上下の余白を追加 */
+        }
+
+        .container {
+            background-color: #ffffff;
+            padding: 30px 40px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 600px; /* 幅を広げて症状チェックボックスのレイアウトを見やすく */
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 1.8em;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: bold;
+        }
+
+        .form-group input[type="text"],
+        .form-group input[type="date"],
+        .form-group input[type="number"], /* 体温用 */
+        .form-group select {
+            width: calc(100% - 20px);
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 1em;
+            box-sizing: border-box;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input[type="text"]:focus,
+        .form-group input[type="date"]:focus,
+        .form-group input[type="number"]:focus,
+        .form-group select:focus {
+            border-color: #007bff;
+            outline: none;
+        }
+
+        /* チェックボックスとラジオボタンのスタイル */
+        .checkbox-group {
+            border: 1px solid #ddd;
+            padding: 15px;
+            border-radius: 6px;
+            background-color: #fdfdfd;
+        }
+
+        .checkbox-group label {
+            font-weight: normal; /* チェックボックスのラベルは太字にしない */
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .checkbox-group input[type="checkbox"] {
+            margin-right: 10px;
+            transform: scale(1.2); /* チェックボックスを少し大きく */
+        }
+
+        /* 最後のチェックボックスの下マージンを調整 */
+        .checkbox-group label:last-child {
+            margin-bottom: 0;
+        }
+
+        button[type="submit"] {
+            width: 100%;
+            padding: 15px;
+            background-color: #28a745; /* 保存ボタンの色を緑系に */
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            margin-top: 20px;
+        }
+
+        button[type="submit"]:hover {
+            background-color: #218838;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>体調観察表入力フォーム</h1>
+        <form action="{{ url_for('condition_input') }}" method="post">
+            <div class="form-group">
+                <label for="studentId">学籍番号:</label>
+                <input type="text" id="studentId" name="studentId" placeholder="例: T123456" required>
+            </div>
+
+            <div class="form-group">
+                <label for="date">日付:</label>
+                <input type="date" id="date" name="date" required>
+            </div>
+
+            <div class="form-group">
+                <label for="timeOfDay">時間帯:</label>
+                <select id="timeOfDay" name="timeOfDay" required>
+                    <option value="">選択してください</option>
+                    <option value="am">午前 (AM)</option>
+                    <option value="pm">午後 (PM)</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="temperature">体温 (℃):</label>
+                <input type="number" id="temperature" name="temperature" step="0.1" min="35.0" max="42.0" placeholder="例: 36.5" required>
+            </div>
+
+            <div class="form-group">
+                <label>以下の症状はありますか？（該当するものにチェック）</label>
+                <div class="checkbox-group">
+                    <label>
+                        <input type="checkbox" name="symptom_jointMusclePain" value="あり"> 関節・筋肉痛
+                    </label>
+                    <label>
+                        <input type="checkbox" name="symptom_fatigue" value="あり"> だるさ
+                    </label>
+                    <label>
+                        <input type="checkbox" name="symptom_headache" value="あり"> 頭痛
+                    </label>
+                    <label>
+                        <input type="checkbox" name="symptom_soreThroat" value="あり"> 咽頭痛
+                    </label>
+                    <label>
+                        <input type="checkbox" name="symptom_shortnessOfBreath" value="あり"> 息苦しさ
+                    </label>
+                    <label>
+                        <input type="checkbox" name="symptom_coughSneeze" value="あり"> 咳・くしゃみ
+                    </label>
+                    <label>
+                        <input type="checkbox" name="symptom_nauseaVomiting" value="あり"> 吐気・嘔吐
+                    </label>
+                    <label>
+                        <input type="checkbox" name="symptom_abdominalDiarrhea" value="あり"> 腹痛・下痢
+                    </label>
+                    <label>
+                        <input type="checkbox" name="symptom_tasteDisorder" value="あり"> 味覚障害
+                    </label>
+                    <label>
+                        <input type="checkbox" name="symptom_smellDisorder" value="あり"> 嗅覚障害
+                    </label>
+                </div>
+            </div>
+
+            <button type="submit">記録を保存</button>
+        </form>
+    </div>
+</body>
+</html>
