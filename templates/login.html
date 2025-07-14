@@ -1,0 +1,38 @@
+<!-- ログインのトップページ -->
+
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ログインページ</title>
+    <style>
+        .error { color: red; }
+        .info { color: blue; }
+    </style>
+</head>
+<body>
+    <h1>ログイン</h1>
+     <!-- flashのメッセージを表示する用 -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <ul class="flashes">
+        {% for category, message in messages %}
+          <li class="{{ category }}">{{ message }}</li>
+        {% endfor %}
+        </ul>
+      {% endif %}
+    {% endwith %}
+
+    <form action="/login" method="post">
+        個人番号<br>
+        <input type="text" name="P_num" required><br><br>
+        パスワード<br>
+        <input type="text" name="pass" required><br><br>
+        <input type="submit" value="ログイン">
+    </form>
+    <!-- <button onclick="location.href='sign_up.html'">新規登録</button><br> -->
+    <p><a href="/sign_up_page">新規登録</a></p>
+    <p><a href="/top">トップページに戻る</a></p>
+</body>
+</html>
