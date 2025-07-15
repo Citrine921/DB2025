@@ -71,7 +71,8 @@ def login1():
 @app.route('/top')
 @check_session #セッションの確認・延長用の関数(ログインが必要なページには全てつける)
 def top():
-    return f"トップ: こんにちは、{session['personal_number']}さん！<br><a href=\"{url_for('logout')}\">ログアウト</a>"
+    return render_template("top.html")
+    # return f"トップ: こんにちは、{session['personal_number']}さん！<br><a href=\"{url_for('logout')}\">ログアウト</a>"
 
 
 # ログインページ
