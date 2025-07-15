@@ -4,6 +4,8 @@
 import pandas as pd
 import numpy as np
 import os
+from functools import wraps
+from datetime import timedelta
 from MyDatabase import my_open, my_query , my_close
 from werkzeug.security import generate_password_hash, check_password_hash
 
@@ -23,7 +25,24 @@ app = Flask(__name__ ,static_folder="static")
 # セッション管理用の暗号化・署名に必要な秘密鍵を設定
 app.config['SECRET_KEY'] = os.urandom(10)
 # セッションの有効期限の設定（とりあえず5分）
-app.config['PERMANENT_SESSION_LIFETIME'] = 300
+app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(minutes=5)
+
+"""
+ログインを要求するデコレータ関数
+セッションがない場合ユーザーをログインページにリダイレクトする
+"""
+def check_session(f):
+    @wraps(f)
+    def check(*args, **kwargs):
+            # セッションにログイン情報があるか確認
+        if 'logged_in' not in session or not session['logged_in']:
+            # ログインしていない場合はログインページへリダイレクト
+            flash('ログインしてください。', 'info')
+            return redirect(url_for('login1'))
+        # セッションの延長
+        session.permanent = True
+        return f(*args, **kwargs)
+    return check
 
 #ルーティング定義
 
@@ -34,9 +53,6 @@ def login1():
     if 'personal_number' in session:
 
         dbcon,cur = my_open(**dsn)
-
-        #データベースの選択
-        my_query("use DB2025;",cur)
 
         #sql文
         sqlstring = f"""
@@ -55,15 +71,10 @@ def login1():
   
 #トップページ
 @app.route('/top')
+@check_session #セッションの確認・延長用の関数(ログインが必要なページには全てつける)
 def top():
-    # セッションにログイン情報があるか確認
-    if 'logged_in' in session and session['logged_in']:
-        user_number = session['personal_number']
-        return f"トップ: こんにちは、{user_number}さん！<br><a href=\"{url_for('logout')}\">ログアウト</a>"
-    else:
-        # ログインしていない場合はログインページへリダイレクト
-        flash('ログインしてください。', 'info')
-        return redirect(url_for('login1'))
+    return render_template("top.html")
+    # return f"トップ: こんにちは、{session['personal_number']}さん！<br><a href=\"{url_for('logout')}\">ログアウト</a>"
 
 
 # ログインページ
@@ -74,9 +85,6 @@ def login():
     password = request.form['pass']
     
     dbcon,cur = my_open(**dsn)
-
-    #データベースの選択
-    my_query("use DB2025;",cur)
 
     #sql文
     sqlstring = f"""
@@ -103,9 +111,10 @@ def login():
                  
         
     #認証失敗    
-    flash ('個人番号が間違っています。','error') # エラーメッセージ
+    flash ('個人番号が間違っています。','error')
     return render_template('login.html')
 
+# 新規登録用のページにとばす用
 @app.route("/sign_up_page")
 def sign_up_page():
     return render_template('sign_up.html')
@@ -124,24 +133,26 @@ def sign_up():
     pass_hash = generate_password_hash(request.form['pass'])
 
     dbcon,cur = my_open(**dsn)
-    print("debug1")
-    print(cur)
-    #データベースの選択
-    my_query("use DB2025;",cur)
 
-    # #sql文
-    # sqlstring = f"""
-    #     select *
-    #     from user
-    #     where personal_number = '{personal_number}'
-    #     ;
-    # """
-    # print(sqlstring)
-    # my_query(sqlstring,cur)
-    # print("debug")
-    # print(cur) #for debug
-    # if(cur == None):
+    #入力された個人番号がすでに登録されているかどうか判定する
+    #sql文
+    sqlstring = f"""
+        select personal_number
+        from user
+        where personal_number = '{personal_number}'
+        ;
+    """
+    print(sqlstring) #for debug
+    my_query(sqlstring,cur)
+    recset = cur.fetchall()
+    print("debug")
+    print(recset) #for debug
 
+    if recset:
+        flash('個人番号がすでに登録されています','error')
+        return render_template('sign_up.html')
+
+    #個人番号が登録されていなかった場合insertを行う
     #sql文
     sqlstring = f"""
         insert into user(personal_number,l_name,f_name,affiliation,tell,mail,addr,pass_hash)
@@ -155,10 +166,6 @@ def sign_up():
     my_close(dbcon,cur)
     flash('登録が完了しました','info')
     return render_template('sign_up.html')
-
-    # else:
-    #     flash('個人番号がすでに登録されています。','error')
-    #     return render_template('sign_up.html')
     
 #ログアウト
 @app.route("/logout")

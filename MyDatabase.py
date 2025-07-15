@@ -12,7 +12,7 @@ def my_query(sqlstring , cur):#MYSQLにquery実行
         print("クエリ実行でエラー発生", e)
         print("sqlstring =",sqlstring)
         sys.exit()
-
+        
 def my_open( **dsn ):
 #DBコネクションのインスタンス化
     try:
