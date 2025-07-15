@@ -4,6 +4,8 @@
 import pandas as pd
 import numpy as np
 import os
+from functools import wraps
+from datetime import timedelta
 from MyDatabase import my_open, my_query , my_close
 from werkzeug.security import generate_password_hash, check_password_hash
 
@@ -23,7 +25,24 @@ app = Flask(__name__ ,static_folder="static")
 # セッション管理用の暗号化・署名に必要な秘密鍵を設定
 app.config['SECRET_KEY'] = os.urandom(10)
 # セッションの有効期限の設定（とりあえず5分）
-app.config['PERMANENT_SESSION_LIFETIME'] = 300
+app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(minutes=5)
+
+"""
+ログインを要求するデコレータ関数
+セッションがない場合ユーザーをログインページにリダイレクトする
+"""
+def check_session(f):
+    @wraps(f)
+    def check(*args, **kwargs):
+            # セッションにログイン情報があるか確認
+        if 'logged_in' not in session or not session['logged_in']:
+            # ログインしていない場合はログインページへリダイレクト
+            flash('ログインしてください。', 'info')
+            return redirect(url_for('login1'))
+        # セッションの延長
+        session.permanent = True
+        return f(*args, **kwargs)
+    return check
 
 #ルーティング定義
 @app.route("/")
@@ -50,15 +69,9 @@ def login1():
 
 #トップページ
 @app.route('/top')
+@check_session #セッションの確認・延長用の関数(ログインが必要なページには全てつける)
 def top():
-    # セッションにログイン情報があるか確認
-    if 'logged_in' in session and session['logged_in']:
-        user_number = session['personal_number']
-        return f"トップ: こんにちは、{user_number}さん！<br><a href=\"{url_for('logout')}\">ログアウト</a>"
-    else:
-        # ログインしていない場合はログインページへリダイレクト
-        flash('ログインしてください。', 'info')
-        return redirect(url_for('login1'))
+    return f"トップ: こんにちは、{session['personal_number']}さん！<br><a href=\"{url_for('logout')}\">ログアウト</a>"
 
 
 # ログインページ
