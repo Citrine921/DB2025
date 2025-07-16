@@ -1,0 +1,83 @@
+<!DOCTYPE HTML>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>利用者別 健康状態レポート</title>
+    <!-- Tailwind CSSを読み込みます -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* フォントや基本的なスタイルを設定 */
+        body {
+            font-family: 'Inter', 'Noto Sans JP', sans-serif;
+        }
+    </style>
+</head>
+
+<body class="bg-gray-100 text-gray-800">
+    <div class="container mx-auto p-4 sm:p-6 lg:p-8">
+        <header class="mb-8">
+            <!-- どの利用者のレポートかを表示 -->
+            <h1 class="text-3xl font-bold text-gray-900">健康状態レポート (利用者: {{ personal_number }})</h1>
+            <p class="text-gray-600 mt-2">指定された利用者の過去全ての健康記録です。</p>
+            <a href="/admin_report" class="mt-4 inline-block text-blue-600 hover:underline">&larr; 利用者選択に戻る</a>
+        </header>
+
+        <!-- データテーブルのコンテナ -->
+        <div class="bg-white rounded-lg shadow-md overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <!-- テーブルヘッダー -->
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">記録日</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">体温</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">関節・筋肉痛</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">倦怠感</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">頭痛</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">喉の痛み</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">息切れ</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">咳・くしゃみ</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">吐き気・嘔吐</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">腹痛・下痢</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">味覚障害</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">嗅覚障害</th>
+                    </tr>
+                </thead>
+                <!-- テーブルボディ -->
+                <tbody class="bg-white divide-y divide-gray-200">
+                    <!-- table_dataが空の場合の表示 -->
+                    {% if table_data.empty %}
+                    <tr>
+                        <td colspan="12" class="px-6 py-4 whitespace-nowrap text-center text-gray-500">
+                            表示するデータがありません。
+                        </td>
+                    </tr>
+                    {% else %}
+                    <!-- Flaskから渡されたtable_data (DataFrame) をループ処理 -->
+                    {% for row in table_data.itertuples() %}
+                    <tr>
+                        <td class="px-6 py-4 whitespace-nowrap">{{ row.health_date.strftime('%Y-%m-%d') }}</td>
+                        <!-- 体温が37.5度以上の場合、文字を赤くする -->
+                        <td class="px-6 py-4 whitespace-nowrap {% if row.temperature >= 37.5 %}text-red-600 font-bold{% endif %}">
+                            {{ "%.1f"|format(row.temperature) }} °C
+                        </td>
+                        <!-- 各症状の有無を「あり」「なし」で表示 -->
+                        <td class="px-6 py-4 whitespace-nowrap">{% if row.joint_muscle_pain %}あり{% else %}なし{% endif %}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">{% if row.fatigue %}あり{% else %}なし{% endif %}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">{% if row.headache %}あり{% else %}なし{% endif %}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">{% if row.sore_throat %}あり{% else %}なし{% endif %}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">{% if row.shortness_of_breath %}あり{% else %}なし{% endif %}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">{% if row.cough_sneeze %}あり{% else %}なし{% endif %}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">{% if row.nausea_vomiting %}あり{% else %}なし{% endif %}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">{% if row.abdominal_pain_diarrhea %}あり{% else %}なし{% endif %}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">{% if row.taste_disorder %}あり{% else %}なし{% endif %}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">{% if row.smell_disorder %}あり{% else %}なし{% endif %}</td>
+                    </tr>
+                    {% endfor %}
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</body>
+</html>

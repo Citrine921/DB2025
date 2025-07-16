@@ -1,0 +1,62 @@
+<!DOCTYPE HTML>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>データ未提出の利用者一覧</title>
+    <!-- Tailwind CSSを読み込みます -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* フォントや基本的なスタイルを設定 */
+        body {
+            font-family: 'Inter', 'Noto Sans JP', sans-serif;
+        }
+    </style>
+</head>
+
+<body class="bg-gray-100 text-gray-800">
+    <div class="container mx-auto p-4 sm:p-6 lg:p-8">
+        <header class="mb-8">
+            <h1 class="text-3xl font-bold text-gray-900">データ未提出の利用者一覧</h1>
+            <p class="text-gray-600 mt-2">過去3日間に健康データの提出がなかった利用者の一覧です。</p>
+            <a href="/admin_report" class="mt-4 inline-block text-blue-600 hover:underline">&larr; 全利用者レポート選択に戻る</a>
+        </header>
+
+        <!-- 未提出者リストのテーブル -->
+        <div class="bg-white rounded-lg shadow-md overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">利用者番号</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">最終提出日</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">アクション</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    <!-- inactive_usersが空の場合の表示 -->
+                    {% if not inactive_users %}
+                    <tr>
+                        <td colspan="3" class="px-6 py-4 whitespace-nowrap text-center text-gray-500">
+                            該当する利用者はいません。
+                        </td>
+                    </tr>
+                    {% else %}
+                    <!-- Flaskから渡されたinactive_usersをループ処理 -->
+                    {% for user in inactive_users %}
+                    <tr>
+                        <td class="px-6 py-4 whitespace-nowrap font-medium text-gray-900">{{ user.personal_number }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-gray-700">{{ user.last_submission_date.strftime('%Y-%m-%d') }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <a href="/admin_report/{{ user.personal_number }}" class="inline-block bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg transition duration-300">
+                                詳細レポート
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</body>
+</html>

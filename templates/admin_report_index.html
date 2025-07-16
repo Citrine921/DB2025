@@ -1,0 +1,44 @@
+<!DOCTYPE HTML>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>利用者レポート選択</title>
+    <!-- Tailwind CSSを読み込みます -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* フォントや基本的なスタイルを設定 */
+        body {
+            font-family: 'Inter', 'Noto Sans JP', sans-serif;
+        }
+    </style>
+</head>
+
+<body class="bg-gray-100 text-gray-800">
+    <div class="container mx-auto p-4 sm:p-6 lg:p-8">
+        <header class="mb-8">
+            <h1 class="text-3xl font-bold text-gray-900">利用者レポート選択</h1>
+            <p class="text-gray-600 mt-2">レポートを閲覧したい利用者を選択してください。</p>
+        </header>
+
+        <!-- 利用者リスト -->
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <ul class="divide-y divide-gray-200">
+                <!-- Flaskから渡されたpersonal_numbersをループ処理 -->
+                {% if personal_numbers %}
+                    {% for number in personal_numbers %}
+                    <li class="py-4 flex items-center justify-between">
+                        <span class="text-lg text-gray-700">利用者番号: {{ number }}</span>
+                        <a href="/admin_report/{{ number }}" class="inline-block bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg transition duration-300">
+                            レポート表示
+                        </a>
+                    </li>
+                    {% endfor %}
+                {% else %}
+                    <li class="py-4 text-center text-gray-500">登録されている利用者がいません。</li>
+                {% endif %}
+            </ul>
+        </div>
+    </div>
+</body>
+</html>
