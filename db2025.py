@@ -74,8 +74,6 @@ def login1():
 @check_session #セッションの確認・延長用の関数(ログインが必要なページには全てつける)
 def top():
     return render_template("top.html")
-    # return f"トップ: こんにちは、{session['personal_number']}さん！<br><a href=\"{url_for('logout')}\">ログアウト</a>"
-
 
 # ログインページ
 @app.route("/login", methods=['GET','POST'])
@@ -175,6 +173,76 @@ def logout():
     session.pop('logged_in', None)
     flash('ログアウトしました。','info')
     return redirect(url_for('login1'))
+
+# パスワード変更ページに飛ばすよう
+@app.route("/change_pass")
+@check_session #セッションの確認・延長用の関数(ログインが必要なページには全てつける)
+def change_pass():
+    return render_template('change_pass.html')
+
+#パスワード変更ページ
+@app.route('/change_pass2', methods=['POST'])
+@check_session #セッションの確認・延長用の関数(ログインが必要なページには全てつける)
+def change_pass2():
+        
+        input_pass = request.form['pass']
+        
+        # データベースに接続して現在のパスワードを持ってくる
+        dbcon,cur = my_open(**dsn)
+
+        #sql文
+        sqlstring = f"""
+            select pass_hash
+            from user
+            where personal_number = "{session['personal_number']}"
+            ;
+        """
+
+        my_query(sqlstring,cur)
+        user_data = cur.fetchall()
+
+        if check_password_hash(user_data[0]['pass_hash'],input_pass):
+            #パスワード一致：新しいパスワードを入力するページに飛ばす
+            return render_template('change_pass2.html')
+        flash('パスワードが間違っています','error')
+        return render_template('change_pass.html')
+
+#パスワードの変更を反映させるページ
+@app.route('/change_pass3', methods=['POST'])
+@check_session #セッションの確認・延長用の関数(ログインが必要なページには全てつける)
+def change_pass3():
+
+    input_pass = request.form['pass_input']
+    check_pass = request.form['pass_check']
+
+    if input_pass == check_pass:
+        # データベースに接続して新しいパスワードを上書き
+        dbcon,cur = my_open(**dsn)
+        #パスワードをハッシュ化
+        pass_hash = generate_password_hash(input_pass)
+
+        #sql文
+        sqlstring = f"""
+            update user
+            set pass_hash = "{pass_hash}"
+            where personal_number = "{session['personal_number']}"
+            ;
+        """
+
+        my_query(sqlstring,cur)
+        #dbに書き込み
+        dbcon.commit()
+        #dbクローズ
+        my_close(dbcon,cur)
+
+        #更新が終わったらログアウトのページに飛ばす
+        flash('パスワードの更新が完了しました','info')
+        return redirect(url_for('logout'))
+    
+    #パスワードの入力欄と確認欄の入力が一致しない場合、もとのページに戻す
+    flash('入力欄と確認欄に入力されたパスワードが異なっています','error')
+    return render_template('change_pass2.html')
+
 
 #アドミン
 @app.route('/admin')
