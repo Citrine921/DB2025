@@ -248,7 +248,7 @@ def change_pass3():
 @app.route('/admin')
 def admin():
     #admin.htmlを返す
-    return app.send_static_file('admin.html')
+    return render_template('admin.html')
 
 @app.route('/admin/todayReport')
 def today_report():
