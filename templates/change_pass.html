@@ -1,0 +1,34 @@
+<!-- パスワード変更ページ -->
+
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>パスワード変更ページ</title>
+    <style>
+        .error { color: red; }
+        .info { color: blue; }
+    </style>
+</head>
+<body>
+    <h1>パスワード変更ページ</h1>
+     <!-- flashのメッセージを表示する用 -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <ul class="flashes">
+        {% for category, message in messages %}
+          <li class="{{ category }}">{{ message }}</li>
+        {% endfor %}
+        </ul>
+      {% endif %}
+    {% endwith %}
+
+    <form action="/change_pass2" method="post">
+        現在のパスワードを入力して下さい<br>
+        <input type="password" name="pass" required><br><br>
+        <input type="submit" value="次へ">
+    </form>
+    <p><a href="/top">トップページに戻る</a></p>
+</body>
+</html>

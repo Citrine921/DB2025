@@ -14,9 +14,10 @@ create table user(
     l_name varchar(20) not null,
     f_name varchar(20) not null,
     affiliation varchar(20) not null,
-    tell varchar(20),
-    mail varchar(20),
-    addr varchar(50),
+    tell varchar(20) not null,
+    mail varchar(20) not null,
+    addr varchar(50) not null,
+    pass_hash varchar(200) not null,
     lastupdate datetime default NOW(),
     deleteflag boolean default False,
     primary key(userID)
