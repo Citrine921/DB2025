@@ -654,11 +654,16 @@ def complete():
 @app.route('/action_input', methods=['GET', 'POST'])
 @check_session #セッションの確認・延長用の関数(ログインが必要なページには全てつける)
 def action_input():
+    personal_number = session.get('personal_number')
+    if not personal_number:
+        flash('ログインしてください。', 'info')
+        return redirect(url_for('login1'))
+
+
     if request.method == 'POST':
         data = request.form
 
-        # 固定の個人番号（本来はログイン情報から取得）
-        personal_number = '12345678'
+
 
         # フォームからの入力値取得
         date_str = data['date']
