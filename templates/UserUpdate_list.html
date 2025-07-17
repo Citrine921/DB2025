@@ -1,97 +1,50 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8">
-  <title>ユーザー一覧</title>
-  <style>
-    table {
-      border-collapse: collapse;
-      font-size: 12px;           /* フォントを小さく */
-      table-layout: fixed;       /* 固定幅レイアウト */
-      width: 100%;
-    }
-    th, td {
-      border: 1px solid #ccc;
-      padding: 4px 6px;          /* パディング小さめ */
-      overflow: hidden;
-      text-overflow: ellipsis;   /* はみ出したら省略記号 */
-      white-space: nowrap;       /* 折り返さず1行表示 */
-      max-width: 100px;          /* 最大幅 */
-      vertical-align: middle;
-      text-align: left;
-    }
-    td.addr {
-      max-width: 150px;          /* 住所だけ少し広め */
-    }
-    td.actions {
-      white-space: normal;       /* 操作欄は折返しOK */
-      max-width: 120px;
-    }
-    form {
-      display: inline;
-    }
-    button {
-      font-size: 12px;
-      padding: 2px 6px;
-      margin-right: 4px;
-    }
-    input[type="text"] {
-      font-size: 12px;
-      padding: 4px;
-      width: 200px;
-      margin-right: 8px;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <title>利用者情報一覧</title>
 </head>
 <body>
-  <h2>ユーザー一覧（削除済み含む）</h2>
+    <h1>利用者情報一覧</h1>
 
-  <!-- 検索フォーム -->
-  <form method="POST">
-    <input type="text" name="keyword" placeholder="名前や番号で検索" value="{{ keyword | default('') }}">
-    <button type="submit">検索</button>
-  </form>
+    {% if users %}
+        <table border="1" cellpadding="5" cellspacing="0">
+            <thead>
+                <tr>
+                    <th>ユーザーID</th>
+                    <th>姓</th>
+                    <th>名</th>
+                    <th>所属</th>
+                    <th>電話</th>
+                    <th>メール</th>
+                    <th>住所</th>
+                    <th>個人番号</th>
+                    <th>最終更新日時</th>
+                    <th>操作</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for user in users %}
+                <tr>
+                    <td>{{ user.userID }}</td>
+                    <td>{{ user.l_name }}</td>
+                    <td>{{ user.f_name }}</td>
+                    <td>{{ user.affiliation }}</td>
+                    <td>{{ user.tell }}</td>
+                    <td>{{ user.mail }}</td>
+                    <td>{{ user.addr }}</td>
+                    <td>{{ user.personal_number }}</td>
+                    <td>{{ user.lastupdate if user.lastupdate else '-' }}</td>
+                    <td><a href="{{ url_for('edit_user', user_id=user.userID) }}">編集</a></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p>利用者情報が見つかりません。</p>
+    {% endif %}
 
-  <table>
-    <thead>
-      <tr>
-        <th>userID</th>
-        <th>番号</th>
-        <th>姓</th>
-        <th>名</th>
-        <th>所属</th>
-        <th>電話</th>
-        <th>メール</th>
-        <th class="addr">住所</th>
-        <th>更新日時</th>
-        <th>削除</th>
-        <th>操作</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for user in users %}
-      <tr>
-        <td>{{ user.userID }}</td>
-        <td>{{ user.personal_number }}</td>
-        <td>{{ user.l_name }}</td>
-        <td>{{ user.f_name }}</td>
-        <td>{{ user.affiliation }}</td>
-        <td>{{ user.tell }}</td>
-        <td>{{ user.mail }}</td>
-        <td class="addr" title="{{ user.addr }}">{{ user.addr }}</td>
-        <td>{{ user.lastupdate }}</td>
-        <td>{{ '○' if user.deleteflag else '' }}</td>
-        <td class="actions">
-          <form method="POST" action="{{ url_for('delete_user', user_id=user.userID) }}" onsubmit="return confirm('削除してよろしいですか？')">
-            <button type="submit">削除</button>
-          </form>
-          <a href="{{ url_for('edit_user', user_id=user.userID) }}">編集</a>
-        </td>
-      </tr>
-      {% else %}
-      <tr><td colspan="11">データがありません</td></tr>
-      {% endfor %}
-    </tbody>
-  </table>
+    <br>
+    <a href="{{ url_for('top') }}">トップページに戻る</a>
 </body>
 </html>

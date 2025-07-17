@@ -292,82 +292,154 @@ def today_report():
     )
 
 ##############
-#利用者上方修正ページ
+#利用者情報修正ページ
 ##############
 
 from flask import Flask, render_template, request, redirect, url_for
 import mysql.connector
 from datetime import datetime
 
+from flask import Flask, render_template, request, redirect, session, url_for, flash
+import mysql.connector
+from functools import wraps
+
+app.secret_key = '00000000'  # セッションで必要
+
+# DB接続
+import mysql.connector
+
+# dsnはメインコードで定義済みとして、
+# もし別ファイルであればインポートもしくはコピーしてください
+
 def get_db_connection():
-    return mysql.connector.connect(**dsn)
+    return mysql.connector.connect(
+        host=dsn['host'],
+        port=int(dsn['port']),
+        user=dsn['user'],
+        password=dsn['password'],
+        database=dsn['database'],
+        charset='utf8'
+    )
 
-@app.route('/user_update', methods=['GET', 'POST'])
+# セッション確認デコレータ
+def check_session(func):
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        if 'personal_number' not in session:
+            flash("ログインしてください。")
+            return redirect(url_for('login'))  # ログインページへ
+        return func(*args, **kwargs)
+    return wrapper
+
+# 利用者情報表示（自分の情報のみ）
+from MyDatabase import my_open, my_query, my_close
+from flask import session, redirect, url_for, render_template, flash
+
+@app.route('/user_update')
+@check_session
 def user_update():
-    conn = get_db_connection()
-    cursor = conn.cursor(dictionary=True)
+    personal_number = session.get('personal_number')
+    if not personal_number:
+        return redirect(url_for('login1'))
 
-    keyword = ''
-    if request.method == 'POST':
-        keyword = request.form.get('keyword', '')
-        query = """
-        SELECT * FROM user
-        WHERE personal_number LIKE %s OR l_name LIKE %s OR f_name LIKE %s
-        """
-        like_keyword = f"%{keyword}%"
-        cursor.execute(query, (like_keyword, like_keyword, like_keyword))
-    else:
-        cursor.execute("SELECT * FROM user")
+    dbcon, cur = my_open(**dsn)
+    try:
+        cur.execute("""
+            SELECT userID, l_name, f_name, affiliation, tell, mail, addr, personal_number, lastupdate
+            FROM user
+            WHERE personal_number = %s
+        """, (personal_number,))
+        users = cur.fetchall()
+    except Exception as e:
+        flash(f"データ取得エラー: {e}", "error")
+        users = []
+    finally:
+        my_close(dbcon, cur)
 
-    users = cursor.fetchall()
-    conn.close()
-    return render_template('UserUpdate_list.html', users=users, keyword=keyword)
+    return render_template('UserUpdate_list.html', users=users)
+
 
 @app.route('/user/edit/<int:user_id>', methods=['GET', 'POST'])
+@check_session
 def edit_user(user_id):
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
 
+    personal_number = session.get('personal_number')
+
     if request.method == 'POST':
-        data = request.form
-        query = """
-        UPDATE user SET
-            personal_number = %s,
-            l_name = %s,
-            f_name = %s,
-            affiliation = %s,
-            tell = %s,
-            mail = %s,
-            addr = %s,
-            lastupdate = NOW()
-        WHERE userID = %s
-        """
-        cursor.execute(query, (
-            data['personal_number'], data['l_name'], data['f_name'],
-            data['affiliation'], data['tell'], data['mail'], data['addr'],
-            user_id
-        ))
-        conn.commit()
+        try:
+            # フォームから編集内容を取得
+            l_name = request.form['l_name']
+            f_name = request.form['f_name']
+            affiliation = request.form['affiliation']
+            tell = request.form.get('tell', '')
+            mail = request.form.get('mail', '')
+            addr = request.form.get('addr', '')
+
+            # 更新SQL（lastupdateをNOW()で更新）
+            cursor.execute("""
+                UPDATE user SET
+                    l_name = %s,
+                    f_name = %s,
+                    affiliation = %s,
+                    tell = %s,
+                    mail = %s,
+                    addr = %s,
+                    lastupdate = NOW()
+                WHERE userID = %s AND personal_number = %s
+            """, (l_name, f_name, affiliation, tell, mail, addr, user_id, personal_number))
+
+            conn.commit()
+            flash("更新しました。")
+            return redirect(url_for('user_update'))
+
+        except Exception as e:
+            flash(f"更新に失敗しました: {e}")
+            conn.rollback()
+
+        finally:
+            conn.close()
+
+    else:
+        # GET時は対象ユーザー情報を取得（personal_number, lastupdateも含む）
+        cursor.execute("""
+            SELECT userID, l_name, f_name, affiliation, tell, mail, addr, personal_number, lastupdate
+            FROM user
+            WHERE userID = %s AND personal_number = %s
+        """, (user_id, personal_number))
+        user = cursor.fetchone()
         conn.close()
-        return redirect(url_for('update_complete'))
 
-    cursor.execute("SELECT * FROM user WHERE userID = %s", (user_id,))
-    user = cursor.fetchone()
-    conn.close()
-    return render_template('UserUpdate_edit.html', user=user)
+        if not user:
+            flash("不正なアクセスです。")
+            return redirect(url_for('user_update'))
 
+        return render_template('UserUpdate_edit.html', user=user)
+
+
+# 削除処理
 @app.route('/user/delete/<int:user_id>', methods=['POST'])
+@check_session
 def delete_user(user_id):
     conn = get_db_connection()
     cursor = conn.cursor()
-    cursor.execute("UPDATE user SET deleteflag = %s WHERE userID = %s", (True, user_id))
+
+    personal_number = session.get('personal_number')
+
+    cursor.execute("DELETE FROM user WHERE userID = %s AND personal_number = %s", (user_id, personal_number))
     conn.commit()
     conn.close()
+
     return redirect(url_for('user_update'))
 
-@app.route('/update_complete')
-def update_complete():
+# 更新完了ページ
+@app.route('/user_update_complete')
+@check_session
+def user_update_complete():
     return render_template('UserUpdate_complete.html')
+
+
 
 
 
