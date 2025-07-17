@@ -3,30 +3,131 @@
 <head>
     <meta charset="UTF-8" />
     <title>コロナ報告フォーム</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+            background-color: #f9f9f9;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        ul.flash-messages {
+            list-style-type: none;
+            padding: 0;
+            margin-bottom: 1rem;
+        }
+        ul.flash-messages li {
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            margin-bottom: 0.5rem;
+            font-weight: bold;
+        }
+        .error-message {
+            background-color: #ffe6e6;
+            color: #d60000;
+            border: 1px solid #d60000;
+        }
+        .info-message {
+            background-color: #e6ffe6;
+            color: #007700;
+            border: 1px solid #007700;
+        }
+        form label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #555;
+        }
+        form input[type="text"],
+        form input[type="date"],
+        form select {
+            width: 100%;
+            padding: 0.5rem;
+            margin-top: 0.2rem;
+            margin-bottom: 1rem;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+            font-size: 1rem;
+        }
+        form input[type="submit"] {
+            background-color: #007bff;
+            border: none;
+            color: white;
+            padding: 0.7rem 1.5rem;
+            font-size: 1.1rem;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: background-color 0.3s ease;
+        }
+        form input[type="submit"]:hover {
+            background-color: #0056b3;
+        }
+        a {
+            display: block;
+            text-align: center;
+            margin-top: 2rem;
+            color: #007bff;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+    </style>
 </head>
 <body>
-    <h1>コロナ報告フォーム</h1>
-    <form method="post" action="{{ url_for('report') }}">
-        <label>所属:<input type="text" name="affiliation" required></label><br>
-        <label>学籍番号:<input type="text" name="personal_number" required></label><br>
-        <label>名字:<input type="text" name="l_name" required></label><br>
-        <label>名前:<input type="text" name="f_name" required></label><br>
+    <main>
+        <h1>コロナ報告フォーム</h1>
 
-        <label>健康状態（コロナ=1、濃厚接触者=2）:
-            <select name="health_condition" required>
-                <option value="">選択してください</option>
-                <option value="1">コロナ</option>
-                <option value="2">濃厚接触者</option>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <ul class="flash-messages">
+                    {% for category, message in messages %}
+                        <li class="{{ 'error-message' if category == 'error' else 'info-message' }}">
+                            {{ message }}
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        {% endwith %}
+
+        <form method="post" action="{{ url_for('covid_report') }}">
+            <label for="affiliation">所属:</label>
+            <input id="affiliation" type="text" name="affiliation" value="{{ user.affiliation }}" />
+
+            <label for="student_id">学籍番号:</label>
+            <input id="student_id" type="text" name="student_id" value="{{ user.student_id }}" />
+
+            <label for="last_name">名字:</label>
+            <input id="last_name" type="text" name="last_name" value="{{ user.last_name }}" />
+
+            <label for="first_name">名前:</label>
+            <input id="first_name" type="text" name="first_name" value="{{ user.first_name }}" />
+
+            <label for="health_status">健康状態:</label>
+            <select id="health_status" name="health_status">
+                <option value="良好">良好</option>
+                <option value="発熱">発熱</option>
+                <option value="体調不良">体調不良</option>
+                <option value="陽性">陽性</option>
             </select>
-        </label><br>
 
-        <label>医療機関名:<input type="text" name="medical_insttution"></label><br>
-        <label>医師名:<input type="text" name="doctor_name"></label><br>
-        <label>終了日:<input type="date" name="end_date" required></label><br>
+            <label for="medical_institution">医療機関名:</label>
+            <input id="medical_institution" type="text" name="medical_institution" />
 
-        <button type="submit">送信</button>
-    </form>
-    <br>
-    <a href="{{ url_for('top') }}">トップに戻る</a>
+            <label for="doctor_name">担当医名:</label>
+            <input id="doctor_name" type="text" name="doctor_name" />
+
+            <label for="end_date">療養終了日:</label>
+            <input id="end_date" type="date" name="end_date" />
+
+            <input type="submit" value="送信" />
+        </form>
+        <a href="{{ url_for('top') }}">トップページに戻る</a>
+    </main>
+
 </body>
 </html>

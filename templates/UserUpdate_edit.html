@@ -1,11 +1,23 @@
-<h1>ユーザー情報編集</h1>
-<form method="POST">
-    <label>個人番号: <input name="personal_number" value="{{ user.personal_number }}"></label><br>
-    <label>姓: <input name="l_name" value="{{ user.l_name }}"></label><br>
-    <label>名: <input name="f_name" value="{{ user.f_name }}"></label><br>
-    <label>所属: <input name="affiliation" value="{{ user.affiliation }}"></label><br>
-    <label>電話: <input name="tell" value="{{ user.tell }}"></label><br>
-    <label>メール: <input name="mail" value="{{ user.mail }}"></label><br>
-    <label>住所: <input name="addr" value="{{ user.addr }}"></label><br>
-    <button type="submit">更新</button>
-</form>
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8" />
+    <title>利用者情報編集</title>
+</head>
+<body>
+    <h1>利用者情報編集</h1>
+
+    <form method="post">
+        <label>姓：<input type="text" name="l_name" value="{{ user.l_name }}" required></label><br>
+        <label>名：<input type="text" name="f_name" value="{{ user.f_name }}" required></label><br>
+        <label>所属：<input type="text" name="affiliation" value="{{ user.affiliation }}"></label><br>
+        <label>電話：<input type="text" name="tell" value="{{ user.tell }}"></label><br>
+        <label>メール：<input type="email" name="mail" value="{{ user.mail }}"></label><br>
+        <label>住所：<input type="text" name="addr" value="{{ user.addr }}"></label><br>
+        <button type="submit">更新</button>
+    </form>
+
+    <br>
+    <a href="{{ url_for('top') }}">トップページに戻る</a>
+</body>
+</html>
