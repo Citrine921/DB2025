@@ -681,10 +681,7 @@ def covid_report():
         flash(f"ユーザー情報の取得エラー: {e}", 'error')
     finally:
         my_close(dbcon, cur)
-
-@app.route("/report", methods=["GET", "POST"])
-@check_session #セッションの確認・延長用の関数(ログインが必要なページには全てつける)
-def report():  # ← 関数名をエンドポイントと一致
+        
     if request.method == "POST":
         affiliation = request.form.get("affiliation")
         personal_number = request.form.get("personal_number")
