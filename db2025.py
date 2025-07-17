@@ -292,7 +292,7 @@ def today_report():
     )
 
 ##############
-#利用者情報修正ページ
+#利用者上方修正ページ
 ##############
 
 from flask import Flask, render_template, request, redirect, url_for
@@ -441,55 +441,59 @@ def user_update_complete():
 
 
 
-
-
 ####################
 #コロナ報告
 ####################
 
-@app.route("/report", methods=["GET", "POST"])
-def report():  # ← 関数名をエンドポイントと一致
-    if request.method == "POST":
-        affiliation = request.form.get("affiliation")
-        personal_number = request.form.get("personal_number")
-        l_name = request.form.get("l_name")
-        f_name = request.form.get("f_name")
-        health_condition = request.form.get("health_condition")
-        medical_insttution = request.form.get("medical_insttution")
-        doctor_name = request.form.get("doctor_name")
-        end_date_str = request.form.get("end_date")
+@app.route('/covid_report', methods=['GET', 'POST'])
+@check_session
+def covid_report():
+    personal_number = session.get('personal_number')
+    
+    # DBからユーザー情報を取得
+    user_info = {
+        'affiliation': '',
+        'student_id': '',
+        'last_name': '',
+        'first_name': ''
+    }
 
-        if not all([affiliation, personal_number, l_name, f_name, health_condition, end_date_str]):
-            return "入力に不備があります", 400
+    dbcon, cur = my_open(**dsn)
+    try:
+        cur.execute("SELECT affiliation, personal_number, l_name, f_name FROM user WHERE personal_number = %s", (personal_number,))
+        row = cur.fetchone()
+        if row:
+            user_info['affiliation'] = row['affiliation'] or ''
+            user_info['student_id'] = row['personal_number'] or ''
+            user_info['last_name'] = row['l_name'] or ''
+            user_info['first_name'] = row['f_name'] or ''
+    except Exception as e:
+        flash(f"ユーザー情報の取得エラー: {e}", 'error')
+    finally:
+        my_close(dbcon, cur)
 
-        try:
-            end_date = datetime.strptime(end_date_str, "%Y-%m-%d")
-        except ValueError:
-            return "終了日の形式が不正です", 400
+    if request.method == 'POST':
+        affiliation = request.form.get('affiliation')
+        student_id = request.form.get('student_id')
+        last_name = request.form.get('last_name')
+        first_name = request.form.get('first_name')
+        health_status = request.form.get('health_status')
+        medical_institution = request.form.get('medical_institution')
+        doctor_name = request.form.get('doctor_name')
+        end_date = request.form.get('end_date')
 
-        cnx = mysql.connector.connect(**dsn)
-        cursor = cnx.cursor()
+        # 必要ならここでDB登録などの処理を書く
 
-        cursor.execute(
-            """
-            INSERT INTO Covid 
-            (personal_number, health_condition, start_date, end_date, medical_insttution, doctor_name, lastupdate, delflag)
-            VALUES (%s, %s, NOW(), %s, %s, %s, NOW(), FALSE)
-            """,
-            (personal_number, int(health_condition), end_date, medical_insttution, doctor_name),
-        )
-        cnx.commit()
-        cursor.close()
-        cnx.close()
+        flash('コロナ報告フォームを送信しました。', 'info')
+        # ここを完了ページにリダイレクトに変更
+        return redirect(url_for('complete'))  # ↓
 
-        return redirect(url_for("complete"))
-
-    return render_template("covid_report.html")
+    return render_template('covid_report.html', user=user_info)
 
 @app.route("/complete")
+@check_session #セッションの確認・延長用の関数(ログインが必要なページには全てつける)
 def complete():
     return render_template("covid_complete.html")
-
 
 #############
 #行動記録入力
