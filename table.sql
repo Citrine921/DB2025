@@ -18,11 +18,11 @@ create table user(
     f_name varchar(20) not null,
     affiliation varchar(20) not null,
     tell varchar(20) not null,
-    mail varchar(20) not null,
+    mail varchar(50) not null,
     addr varchar(50) not null,
     pass_hash varchar(200) not null,
     lastupdate datetime default NOW(),
-    deleteflag boolean default False,
+    delflag boolean default False,
     primary key(userID)
 );
 -- 体調記録テーブル作成
@@ -42,6 +42,8 @@ CREATE TABLE health_records (
     abdominal_pain_diarrhea BOOLEAN NOT NULL DEFAULT 0,
     taste_disorder BOOLEAN NOT NULL DEFAULT 0,
     smell_disorder BOOLEAN NOT NULL DEFAULT 0,
+    lastupdate datetime default NOW(),
+    delflag boolean default False,
     FOREIGN KEY (personal_number)
         REFERENCES user(personal_number)
         ON DELETE CASCADE
@@ -52,8 +54,8 @@ CREATE TABLE action_record (
     action_recordID INT AUTO_INCREMENT PRIMARY KEY, 
     personal_number VARCHAR(20),                    
     date DATETIME,                                  
-    start_time DATETIME NOT NULL,                   
-    end_time DATETIME NOT NULL,                     
+    start_time time NOT NULL,                   
+    end_time time NOT NULL,                     
     place VARCHAR(30),                              
     move_method VARCHAR(50),                        
     departure VARCHAR(100),                        
