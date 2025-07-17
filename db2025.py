@@ -135,6 +135,12 @@ def sign_up():
     if recset:
         flash('個人番号がすでに登録されています','error')
         return render_template('sign_up.html')
+    
+    #管理者を表す個人番号が入力された場合
+    if personal_number.startswith('U'):
+        flash('Uで始まる個人番号は管理者用のため設定できません','error')
+        return render_template('sign_up.html')
+
 
     #個人番号が登録されていなかった場合insertを行う
     #sql文
