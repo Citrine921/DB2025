@@ -39,6 +39,13 @@ def check_session(f):
             # ログインしていない場合はログインページへリダイレクト
             flash('ログインしてください。', 'info')
             return redirect(url_for('login1'))
+        
+        # 管理者ページ用：一般ユーザーがアクセスした際にログインページに飛ばす
+        if f.__name__.startswith('admin'):
+            if not session['personal_number'].startswith('U'):
+                flash('権限が必要です管理者のアカウントでログインして下さい','info')
+                return redirect(url_for('login1'))
+            
         # セッションの延長
         session.permanent = True
         return f(*args, **kwargs)
@@ -49,24 +56,7 @@ def check_session(f):
 #基礎ページ 
 @app.route("/")
 def login1():
-    # セッションにユーザー名が保存されていれば、ログイン済みとしてトップページにとばす
-    if 'personal_number' in session:
-
-        dbcon,cur = my_open(**dsn)
-
-        #sql文
-        sqlstring = f"""
-            select personal_number, l_name, f_name
-            from user
-            ;
-        """
-
-        my_query(sqlstring,cur)
-        user_data = cur.fetchall()
-
-        personal_number = session['personal_number']
-        return f"ようこそ、{personal_number}さん  <a href=\"{url_for('top')}\">トップページへ</a> | <a href=\"{url_for('logout')}\">ログアウト</a>"
-    # セッションにユーザー名が保存されていなければログインページにとばす
+    # ログインページにとばす
     return render_template("login.html")
   
 #トップページ
@@ -304,11 +294,13 @@ def change_pass3():
 
 #アドミン
 @app.route('/admin')
+@check_session #セッションの確認・延長用の関数(ログインが必要なページには全てつける)
 def admin():
     #admin.htmlを返す
     return render_template('admin.html')
 
 @app.route('/admin_today_report')
+@check_session #セッションの確認・延長用の関数(ログインが必要なページには全てつける)
 def today_report():
     dbcon, cur = None, None  # 接続情報とカーソルを初期化
     try:
@@ -376,6 +368,7 @@ def today_report():
                            table_data=recset)
 
 @app.route('/admin_report')
+@check_session #セッションの確認・延長用の関数(ログインが必要なページには全てつける)
 def admin_report_index():
     """
     登録されている利用者の一覧を表示するためのルート。
@@ -401,6 +394,7 @@ def admin_report_index():
 
 
 @app.route('/admin_report/<personal_number>')
+@check_session #セッションの確認・延長用の関数(ログインが必要なページには全てつける)
 def admin_report_detail(personal_number):
     """
     指定された利用者の過去の健康記録をすべて表示するためのルート。
@@ -452,6 +446,7 @@ def admin_report_detail(personal_number):
                            personal_number=personal_number)
     
 @app.route('/admin/inactive_users')
+@check_session #セッションの確認・延長用の関数(ログインが必要なページには全てつける)
 def inactive_users():
     """
     過去3日間にデータの提出がない利用者をリストアップして表示する。
@@ -524,6 +519,7 @@ def get_db_connection():
     return mysql.connector.connect(**dsn)
 
 @app.route('/user_update', methods=['GET', 'POST'])
+@check_session #セッションの確認・延長用の関数(ログインが必要なページには全てつける)
 def user_update():
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
@@ -545,6 +541,7 @@ def user_update():
     return render_template('UserUpdate_list.html', users=users, keyword=keyword)
 
 @app.route('/user/edit/<int:user_id>', methods=['GET', 'POST'])
+@check_session #セッションの確認・延長用の関数(ログインが必要なページには全てつける)
 def edit_user(user_id):
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
@@ -578,6 +575,7 @@ def edit_user(user_id):
     return render_template('UserUpdate_edit.html', user=user)
 
 @app.route('/user/delete/<int:user_id>', methods=['POST'])
+@check_session #セッションの確認・延長用の関数(ログインが必要なページには全てつける)
 def delete_user(user_id):
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -587,6 +585,7 @@ def delete_user(user_id):
     return redirect(url_for('user_update'))
 
 @app.route('/update_complete')
+@check_session #セッションの確認・延長用の関数(ログインが必要なページには全てつける)
 def update_complete():
     return render_template('UserUpdate_complete.html')
 
@@ -597,6 +596,7 @@ def update_complete():
 ####################
 
 @app.route("/report", methods=["GET", "POST"])
+@check_session #セッションの確認・延長用の関数(ログインが必要なページには全てつける)
 def report():  # ← 関数名をエンドポイントと一致
     if request.method == "POST":
         affiliation = request.form.get("affiliation")
@@ -636,6 +636,7 @@ def report():  # ← 関数名をエンドポイントと一致
     return render_template("covid_report.html")
 
 @app.route("/complete")
+@check_session #セッションの確認・延長用の関数(ログインが必要なページには全てつける)
 def complete():
     return render_template("covid_complete.html")
 
@@ -645,6 +646,7 @@ def complete():
 #############
 # 行動記録入力ページ（ルートを /action_input に変更）
 @app.route('/action_input', methods=['GET', 'POST'])
+@check_session #セッションの確認・延長用の関数(ログインが必要なページには全てつける)
 def action_input():
     if request.method == 'POST':
         data = request.form
@@ -706,6 +708,7 @@ def action_input():
 
 # 完了ページ
 @app.route('/action_done')
+@check_session #セッションの確認・延長用の関数(ログインが必要なページには全てつける)
 def action_done():
     return render_template('action_done.html')
 
@@ -714,6 +717,7 @@ def action_done():
 #体調観察入力
 #############
 @app.route('/condition_input', methods=['GET', 'POST'])
+@check_session #セッションの確認・延長用の関数(ログインが必要なページには全てつける)
 def condition_input():
     if request.method == 'POST':
         # フォームデータ取得
@@ -764,6 +768,7 @@ def condition_input():
     return render_template('condition_input.html')
 
 @app.route('/condition_done')
+@check_session #セッションの確認・延長用の関数(ログインが必要なページには全てつける)
 def condition_done():
     return render_template('condition_done.html')
 
