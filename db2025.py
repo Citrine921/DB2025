@@ -102,8 +102,6 @@ def login():
                     session['logged_in'] = True
                     return redirect(url_for('top'))
             else:
-                print(check_password_hash(generate_password_hash("a"),'a'))
-                print(i['pass_hash'])
                 flash('パスワードが間違っています','error')
                 return render_template('login.html')
                  
@@ -140,11 +138,9 @@ def sign_up():
         where personal_number = '{personal_number}'
         ;
     """
-    print(sqlstring) #for debug
+
     my_query(sqlstring,cur)
     recset = cur.fetchall()
-    print("debug")
-    print(recset) #for debug
 
     if recset:
         flash('個人番号がすでに登録されています','error')
@@ -173,6 +169,68 @@ def logout():
     session.pop('logged_in', None)
     flash('ログアウトしました。','info')
     return redirect(url_for('login1'))
+
+#パスワードを忘れたとき用のページに飛ばす
+@app.route("/forget_pass")
+def forget_pass():
+    return render_template('forget_pass.html')
+
+#パスワードを忘れたとき用
+@app.route("/forget_pass2", methods=['POST'])
+def forget_pass2():
+
+    # ユーザーの入力内容の受け取り
+    personal_number = request.form['P_num']
+    l_name = request.form['l_name']
+    f_name = request.form['f_name']
+    affiliation = request.form['affiliation']
+    tell = request.form['tell']
+    mail = request.form['mail']
+    addr = request.form['addr']
+
+    # データベースに接続
+    dbcon,cur = my_open(**dsn)
+
+    #入力された個人番号がすでに登録されているかどうか判定する
+    #sql文
+    sqlstring = f"""
+        select personal_number
+        from user
+        where personal_number = '{personal_number}'
+        ;
+    """
+
+    my_query(sqlstring,cur)
+    user_data = cur.fetchall()
+
+    if user_data:
+        #入力された個人番号に登録されているデータを持ってくる
+        #sql文
+        sqlstring = f"""
+            select personal_number, l_name, f_name, affiliation, tell, mail, addr
+            from user
+            where personal_number = "{personal_number}"
+            ;
+        """
+
+        my_query(sqlstring,cur)
+        user_data = cur.fetchall()
+
+        #ユーザーが入力した内容が登録されている内容とあっているかどうか確認
+        if l_name == user_data[0]['l_name'] and f_name == user_data[0]['f_name'] and affiliation == user_data[0]['affiliation'] and tell == user_data[0]['tell'] and  mail == user_data[0]['mail'] and addr == user_data[0]['addr']:
+            #認証成功：セッションを与えてパスワード変更画面に飛ばす
+            session['personal_number'] = personal_number
+            session['logged_in'] = True
+            return render_template('change_pass2.html')
+
+        #認証失敗：入力画面に戻す
+        flash('入力内容に誤りがあります','error')
+        return render_template('forget_pass.html')
+    
+    #入力された個人番号がデータベースになかった場合
+    flash('この個人番号はまだ登録されていません','error')
+    return render_template('forget_pass.html')
+
 
 # パスワード変更ページに飛ばすよう
 @app.route("/change_pass")
