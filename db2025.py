@@ -514,7 +514,7 @@ def inactive_users():
 
 
 ##############
-#利用者上方修正ページ
+#利用者情報修正ページ
 ##############
 
 from flask import Flask, render_template, request, redirect, url_for
